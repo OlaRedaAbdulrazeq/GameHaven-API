@@ -29,6 +29,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use('/api', mainRouter);
 
 // TODO:this result in regex error and there is not time to debug will beee handeled later
