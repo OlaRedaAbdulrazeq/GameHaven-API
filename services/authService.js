@@ -4,7 +4,6 @@ import ApiError from '../utils/ApiError.js';
 import process from 'node:process';
 
 const generateToken = (id) => {
-  console.log('JWT_SECRET in generateToken:', process.env.JWT_SECRET); // DIAGNOSTIC LOG
   if (!process.env.JWT_SECRET) {
     throw new Error('CRITICAL: JWT_SECRET is undefined in generateToken!');
   }
