@@ -10,8 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: 'Create env file'
+        run: |
+          echo "${{ secrets.DB_SECRET }}" > .env
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -30,3 +35,5 @@ jobs:
 
       - name: Check formatting
         run: npx prettier --check .
+      - name: run test 
+        run:  npm run test:run
