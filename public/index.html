@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GameHaven API Interactive Tester</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f2f5;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: auto;
+        background-color: #fff;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1,
+      h2 {
+        color: #007bff;
+        text-align: center;
+      }
+      h2 {
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 10px;
+        margin-top: 30px;
+      }
+      label {
+        display: block;
+        margin-top: 12px;
+        font-weight: 600;
+        color: #555;
+      }
+      input[type='text'],
+      input[type='email'],
+      input[type='password'],
+      input[type='number'],
+      textarea,
+      select {
+        width: calc(100% - 24px);
+        padding: 10px;
+        margin-top: 6px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        font-size: 16px;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        padding: 12px 18px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      button.secondary {
+        background-color: #6c757d;
+      }
+      button.secondary:hover {
+        background-color: #545b62;
+      }
+      button.danger {
+        background-color: #dc3545;
+      }
+      button.danger:hover {
+        background-color: #b02a37;
+      }
+      button.success {
+        background-color: #28a745;
+      }
+      button.success:hover {
+        background-color: #1e7e34;
+      }
+      pre {
+        background-color: #282c34;
+        color: #abb2bf;
+        padding: 15px;
+        border-radius: 5px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: 'Courier New', Courier, monospace;
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid #444;
+      }
+      .section {
+        margin-bottom: 35px;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background-color: #f9f9f9;
+      }
+      .auth-forms {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+      }
+      .auth-forms > div {
+        flex: 1;
+        min-width: 300px;
+      }
+      #authStatus {
+        text-align: right;
+        margin-bottom: 20px;
+      }
+      #currentUser {
+        font-weight: bold;
+        color: #28a745;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+        font-size: 0.95em;
+      }
+      th {
+        background-color: #007bff;
+        color: white;
+        font-size: 1em;
+      }
+      td img {
+        max-width: 50px;
+        max-height: 75px;
+        height: auto;
+        border-radius: 3px;
+        vertical-align: middle;
+        margin-right: 5px;
+      }
+      td button {
+        margin-top: 0;
+        margin-right: 5px;
+        padding: 6px 10px;
+        font-size: 0.9em;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+      }
+      .modal-content {
+        background-color: #fff;
+        margin: auto;
+        padding: 25px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+      }
+      .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+      }
+      .close-button:hover,
+      .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .hidden {
+        display: none !important;
+      } /* Utility class */
+      .cart-total,
+      .order-total {
+        font-weight: bold;
+        text-align: right;
+        margin-top: 10px;
+        font-size: 1.1em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>GameHaven API Interactive Tester</h1>
+
+      <div id="authStatus">
+        Logged in as: <span id="currentUser">None</span>
+        <button
+          id="logoutButton"
+          onclick="logoutUser()"
+          class="secondary hidden"
+        >
+          Logout
+        </button>
+      </div>
+      <hr />
+
+      <div id="authSection" class="auth-forms">
+        <div class="section">
+          <h2>User Registration</h2>
+          <label for="regName">Name:</label>
+          <input type="text" id="regName" value="Test User Html" />
+          <label for="regEmail">Email:</label>
+          <input type="email" id="regEmail" value="testhtml@example.com" />
+          <label for="regPassword">Password:</label>
+          <input type="password" id="regPassword" value="password123" />
+          <label for="regRole">Role (user/admin):</label>
+          <input type="text" id="regRole" value="user" />
+          <button onclick="registerUser()">Register</button>
+        </div>
+
+        <div class="section">
+          <h2>User Login</h2>
+          <label for="loginEmail">Email:</label>
+          <input type="email" id="loginEmail" value="testhtml@example.com" />
+          <label for="loginPassword">Password:</label>
+          <input type="password" id="loginPassword" value="password123" />
+          <button onclick="loginUser()">Login</button>
+        </div>
+      </div>
+      <pre id="authResponse" style="margin-top: 10px; display: block"></pre>
+
+      <div id="gamesSection" class="hidden section">
+        <h2>Games Management</h2>
+        <button onclick="openGameModal()">Add New Game (Admin)</button>
+        <button onclick="fetchGames()">Refresh Games List</button>
+        <table id="gamesTable">
+          <thead>
+            <tr>
+              <th>Cover</th>
+              <th>Title</th>
+              <th>Platform</th>
+              <th>Genre</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="cartSection" class="hidden section">
+        <h2>Shopping Cart</h2>
+        <button onclick="fetchCart()">Refresh Cart</button>
+        <table id="cartTable">
+          <thead>
+            <tr>
+              <th>Cover</th>
+              <th>Title</th>
+              <th>Price</th>
+              <th>Quantity</th>
+              <th>Subtotal</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <div id="cartTotal" class="cart-total">Total: $0.00</div>
+        <button
+          id="placeOrderButton"
+          class="success hidden"
+          onclick="placeOrder()"
+        >
+          Place Order
+        </button>
+      </div>
+
+      <div id="ordersSection" class="hidden section">
+        <h2>My Orders</h2>
+        <button onclick="fetchOrders()">Refresh Orders</button>
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="genericResponseSection" class="section hidden">
+        <h2>Last API Action Response</h2>
+        <pre id="genericResponse"></pre>
+      </div>
+    </div>
+
+    <!-- Game Modal -->
+    <div id="gameModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button" onclick="closeGameModal()">×</span>
+        <h3 id="modalTitle">Add Game</h3>
+        <input type="hidden" id="gameId" />
+        <label for="modalGameTitle">Title:</label>
+        <input type="text" id="modalGameTitle" />
+        <label for="modalGameDescription">Description:</label>
+        <textarea id="modalGameDescription"></textarea>
+        <label for="modalGamePlatform">Platform:</label>
+        <input type="text" id="modalGamePlatform" />
+        <label for="modalGameGenre">Genre:</label>
+        <input type="text" id="modalGameGenre" />
+        <label for="modalGamePrice">Price:</label>
+        <input type="number" id="modalGamePrice" step="0.01" />
+        <label for="modalGameStock">Stock:</label>
+        <input type="number" id="modalGameStock" />
+        <p style="font-size: 0.9em; color: #777">
+          (Cover image upload via this UI is simplified. Add file input if
+          needed.)
+        </p>
+        <button onclick="saveGame()">Save Game</button>
+        <pre id="modalResponse"></pre>
+      </div>
+    </div>
+
+    <script>
+      // Base URL for API requests
+      const API_BASE_URL = '/api';
+
+      // Variables to store authentication and user data
+      let jwtToken = localStorage.getItem('jwtToken');
+      let currentUserEmail = localStorage.getItem('currentUserEmail');
+
+      // Variables to store application data
+      let currentGames = [];
+      let currentCart = { items: [], totalPrice: 0 };
+      let currentOrders = [];
+
+      // DOM element references for UI manipulation
+      const el = {
+        currentUserDisplay: document.getElementById('currentUser'),
+        logoutButton: document.getElementById('logoutButton'),
+        authSection: document.getElementById('authSection'),
+        authResponse: document.getElementById('authResponse'),
+        gamesSection: document.getElementById('gamesSection'),
+        gamesTableBody: document.querySelector('#gamesTable tbody'),
+        cartSection: document.getElementById('cartSection'),
+        cartTableBody: document.querySelector('#cartTable tbody'),
+        cartTotalDisplay: document.getElementById('cartTotal'),
+        placeOrderButton: document.getElementById('placeOrderButton'),
+        ordersSection: document.getElementById('ordersSection'),
+        ordersTableBody: document.querySelector('#ordersTable tbody'),
+        gameModal: document.getElementById('gameModal'),
+        modalTitle: document.getElementById('modalTitle'),
+        modalResponse: document.getElementById('modalResponse'),
+        gameIdInput: document.getElementById('gameId'),
+        modalGameTitle: document.getElementById('modalGameTitle'),
+        modalGameDescription: document.getElementById('modalGameDescription'),
+        modalGamePlatform: document.getElementById('modalGamePlatform'),
+        modalGameGenre: document.getElementById('modalGameGenre'),
+        modalGamePrice: document.getElementById('modalGamePrice'),
+        modalGameStock: document.getElementById('modalGameStock'),
+        genericResponse: document.getElementById('genericResponse'),
+        genericResponseSection: document.getElementById(
+          'genericResponseSection'
+        ),
+      };
+
+      // Function to make API requests
+      async function makeApiRequest(
+        endpoint,
+        method = 'GET',
+        body = null,
+        isFormData = false
+      ) {
+        const headers = {};
+        if (jwtToken) {
+          headers['Authorization'] = `Bearer ${jwtToken}`;
+        }
+        if (!isFormData && body && (method === 'POST' || method === 'PUT')) {
+          headers['Content-Type'] = 'application/json';
+        }
+
+        const config = { method, headers };
+        if (body) {
+          config.body = isFormData ? body : JSON.stringify(body);
+        }
+
+        el.genericResponseSection.classList.remove('hidden');
+        el.genericResponse.textContent = `Sending ${method} to ${API_BASE_URL}${endpoint}...`;
+
+        try {
+          const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+          const responseBodyText = await response.text(); // Get text first
+          let responseData;
+          try {
+            responseData = JSON.parse(responseBodyText);
+          } catch (e) {
+            responseData = {
+              note: 'Response not JSON or parse error',
+              content: responseBodyText,
+              status: response.status,
+              ok: response.ok,
+            };
+          }
+
+          const result = {
+            status: response.status,
+            ok: response.ok,
+            data: responseData,
+          };
+
+          if (endpoint.startsWith('/auth/')) {
+            displayAuthResponse(result);
+          } else {
+            displayGenericResponse(result);
+          }
+          return result;
+        } catch (error) {
+          console.error('API Request Error:', error);
+          const result = {
+            status: 500,
+            ok: false,
+            data: {
+              error: 'Network or client-side error',
+              details: error.message,
+            },
+          };
+          if (endpoint.startsWith('/auth/')) {
+            displayAuthResponse(result);
+          } else {
+            displayGenericResponse(result);
+          }
+          return result;
+        }
+      }
+
+      // Function to display generic API response
+      function displayGenericResponse(result) {
+        el.genericResponseSection.classList.remove('hidden');
+        el.genericResponse.textContent = `Status: ${result.status}\n\n${JSON.stringify(result.data, null, 2)}`;
+        el.genericResponse.style.color = result.ok ? 'darkgreen' : 'darkred';
+      }
+
+      // Function to display authentication-related API response
+      function displayAuthResponse(result) {
+        el.authResponse.style.display = 'block';
+        el.authResponse.textContent = `Status: ${result.status}\n\n${JSON.stringify(result.data, null, 2)}`;
+        el.authResponse.style.color = result.ok ? 'darkgreen' : 'darkred';
+      }
+
+      // Function to display modal-specific API response
+      function displayModalResponse(result) {
+        el.modalResponse.textContent = `Status: ${result.status}\n\n${JSON.stringify(result.data, null, 2)}`;
+        el.modalResponse.style.color = result.ok ? 'darkgreen' : 'darkred';
+      }
+
+      // Function to register a new user
+      async function registerUser() {
+        el.authResponse.textContent = 'Registering...';
+        const payload = {
+          name: document.getElementById('regName').value,
+          email: document.getElementById('regEmail').value,
+          password: document.getElementById('regPassword').value,
+          role: document.getElementById('regRole').value || 'user',
+        };
+        await makeApiRequest('/auth/register', 'POST', payload);
+      }
+
+      // Function to log in a user
+      async function loginUser() {
+        el.authResponse.textContent = 'Logging in...';
+        const payload = {
+          email: document.getElementById('loginEmail').value,
+          password: document.getElementById('loginPassword').value,
+        };
+        const result = await makeApiRequest('/auth/login', 'POST', payload);
+
+        if (result.ok && result.data.data && result.data.data.token) {
+          jwtToken = result.data.data.token;
+          currentUserEmail = result.data.data.email || payload.email;
+          localStorage.setItem('jwtToken', jwtToken);
+          localStorage.setItem('currentUserEmail', currentUserEmail);
+          updateAuthUI(true);
+          fetchGames();
+          fetchCart();
+          fetchOrders();
+        } else {
+          jwtToken = null;
+          currentUserEmail = null;
+          localStorage.removeItem('jwtToken');
+          localStorage.removeItem('currentUserEmail');
+          updateAuthUI(false);
+        }
+      }
+
+      // Function to log out the current user
+      function logoutUser() {
+        jwtToken = null;
+        currentUserEmail = null;
+        localStorage.removeItem('jwtToken');
+        localStorage.removeItem('currentUserEmail');
+        updateAuthUI(false);
+        currentGames = [];
+        renderGamesTable();
+        currentCart = { items: [], totalPrice: 0 };
+        renderCartTable();
+        currentOrders = [];
+        renderOrdersTable();
+        el.authResponse.textContent = 'Logged out.';
+        el.genericResponseSection.classList.add('hidden');
+      }
+
+      // Function to update the UI based on authentication status
+      function updateAuthUI(isLoggedIn) {
+        el.currentUserDisplay.textContent = isLoggedIn
+          ? currentUserEmail || 'Logged In'
+          : 'None';
+        el.logoutButton.classList.toggle('hidden', !isLoggedIn);
+        el.authSection.classList.toggle('hidden', isLoggedIn);
+        el.gamesSection.classList.toggle('hidden', !isLoggedIn);
+        el.cartSection.classList.toggle('hidden', !isLoggedIn);
+        el.ordersSection.classList.toggle('hidden', !isLoggedIn);
+        el.authResponse.style.display = 'block';
+        if (!isLoggedIn) {
+          el.genericResponseSection.classList.add('hidden');
+        }
+      }
+
+      // Function to fetch the list of games
+      async function fetchGames() {
+        el.genericResponseSection.classList.remove('hidden');
+        el.genericResponse.textContent = 'Fetching games...';
+        const result = await makeApiRequest('/games', 'GET');
+        if (result.ok && result.data.data && Array.isArray(result.data.data)) {
+          currentGames = result.data.data;
+        } else {
+          console.warn(
+            'Failed to fetch games or data format incorrect:',
+            result
+          );
+          currentGames = [];
+        }
+        renderGamesTable();
+      }
+
+      // Function to render the games table
+      function renderGamesTable() {
+        el.gamesTableBody.innerHTML = '';
+        if (currentGames.length === 0) {
+          el.gamesTableBody.innerHTML =
+            '<tr><td colspan="7">No games available.</td></tr>';
+          return;
+        }
+        currentGames.forEach((game) => {
+          const row = el.gamesTableBody.insertRow();
+          let coverSrc =
+            game.coverImage || 'https://via.placeholder.com/50x75?text=No+Img';
+          if (coverSrc && !coverSrc.startsWith('http')) {
+            // If it's a local path
+            coverSrc = coverSrc.startsWith('/') ? coverSrc : `/${coverSrc}`; // Ensure it starts with /
+          }
+
+          row.innerHTML = `
+                    <td>
+                      <!-- <img src="${coverSrc}" alt="${game.title || ''}" > -->
+
+                    </td>
+                    <td>${game.title || 'N/A'}</td> <td>${game.platform || 'N/A'}</td> <td>${game.genre || 'N/A'}</td>
+                    <td>$${(game.price || 0).toFixed(2)}</td> <td>${game.stock !== undefined ? game.stock : 'N/A'}</td>
+                    <td>
+                        <button onclick="openGameModal('${game._id}')" class="secondary">Edit</button>
+                        <button onclick="deleteGame('${game._id}', '${game.title || 'this game'}')" class="danger">Del</button>
+                        <button onclick="addToCart('${game._id}')" class="success" title="Add to Cart">+</button>
+                    </td>`;
+        });
+      }
+
+      // Function to open the game modal for adding/editing a game
+      function openGameModal(gameIdToEdit = null) {
+        clearModalForm();
+        if (gameIdToEdit) {
+          const game = currentGames.find((g) => g._id === gameIdToEdit);
+          if (game) {
+            el.modalTitle.textContent = 'Edit Game';
+            el.gameIdInput.value = game._id;
+            el.modalGameTitle.value = game.title;
+            el.modalGameDescription.value = game.description;
+            el.modalGamePlatform.value = game.platform;
+            el.modalGameGenre.value = game.genre;
+            el.modalGamePrice.value = game.price;
+            el.modalGameStock.value = game.stock;
+          } else {
+            alert('Game not found for editing.');
+            return;
+          }
+        } else {
+          el.modalTitle.textContent = 'Add Game';
+        }
+        el.gameModal.style.display = 'flex';
+        el.modalResponse.textContent = '';
+      }
+
+      // Function to close the game modal
+      function closeGameModal() {
+        el.gameModal.style.display = 'none';
+      }
+
+      // Function to clear the game modal form
+      function clearModalForm() {
+        el.gameIdInput.value = '';
+        el.modalGameTitle.value = '';
+        el.modalGameDescription.value = '';
+        el.modalGamePlatform.value = '';
+        el.modalGameGenre.value = '';
+        el.modalGamePrice.value = '';
+        el.modalGameStock.value = '';
+        el.modalResponse.textContent = '';
+      }
+
+      // Function to save a game (add or edit)
+      async function saveGame() {
+        if (!jwtToken) {
+          alert('Admin login required.');
+          return;
+        }
+        const gameId = el.gameIdInput.value;
+        const method = gameId ? 'PUT' : 'POST';
+        const endpoint = gameId ? `/games/${gameId}` : '/games';
+
+        const formData = new FormData(); // Use FormData for game creation/update due to potential file upload
+        formData.append('title', el.modalGameTitle.value);
+        formData.append('description', el.modalGameDescription.value);
+        formData.append('platform', el.modalGamePlatform.value);
+        formData.append('genre', el.modalGameGenre.value);
+        formData.append('price', el.modalGamePrice.value);
+        formData.append('stock', el.modalGameStock.value);
+        // Example for file: const fileInput = document.getElementById('modalGameCover');
+        // if (fileInput && fileInput.files[0]) formData.append('coverImage', fileInput.files[0]);
+
+        const result = await makeApiRequest(endpoint, method, formData, true); // isFormData = true
+        if (result.ok) {
+          fetchGames();
+          closeGameModal();
+        } else {
+          displayModalResponse(result);
+        }
+      }
+
+      // Function to delete a game
+      async function deleteGame(gameId, gameTitle) {
+        if (!jwtToken) {
+          alert('Admin login required.');
+          return;
+        }
+        if (confirm(`Delete "${gameTitle}"?`)) {
+          const result = await makeApiRequest(`/games/${gameId}`, 'DELETE');
+          if (result.ok) fetchGames();
+        }
+      }
+
+      // Function to fetch the shopping cart
+      async function fetchCart() {
+        if (!jwtToken) return;
+        el.genericResponseSection.classList.remove('hidden');
+        el.genericResponse.textContent = 'Fetching cart...';
+        const result = await makeApiRequest('/cart', 'GET');
+        if (result.ok && result.data.data) {
+          currentCart = result.data.data; // API returns cart object in result.data.data
+        } else {
+          currentCart = { items: [], totalPrice: 0 };
+        }
+        renderCartTable();
+      }
+
+      // Function to render the shopping cart table
+      function renderCartTable() {
+        el.cartTableBody.innerHTML = '';
+        if (
+          !currentCart ||
+          !currentCart.items ||
+          currentCart.items.length === 0
+        ) {
+          el.cartTableBody.innerHTML =
+            '<tr><td colspan="6">Your cart is empty.</td></tr>';
+          el.cartTotalDisplay.textContent = 'Total: $0.00';
+          el.placeOrderButton.classList.add('hidden');
+          return;
+        }
+        currentCart.items.forEach((item) => {
+          const row = el.cartTableBody.insertRow();
+          let coverSrc =
+            item.coverImage || 'https://via.placeholder.com/50x75?text=No+Img';
+          if (coverSrc && !coverSrc.startsWith('http'))
+            coverSrc = coverSrc.startsWith('/') ? coverSrc : `/${coverSrc}`;
+
+          row.innerHTML = `
+                    <td>
+                      <!-- <img src="${coverSrc}" alt="${item.title || ''}" onerror="this.style.display='none'; this.parentElement.innerHTML+='(no img)';"> -->
+                    </td>
+                    <td>${item.title || 'N/A'}</td>
+                    <td>$${(item.price || 0).toFixed(2)}</td>
+                    <td>${item.quantity || 0}</td>
+                    <td>$${((item.price || 0) * (item.quantity || 0)).toFixed(2)}</td>
+                    <td>
+                        <button onclick="removeFromCart('${item.game}')" class="danger">Remove</button>
+                    </td>`;
+        });
+        el.cartTotalDisplay.textContent = `Total: $${(currentCart.totalPrice || 0).toFixed(2)}`;
+        el.placeOrderButton.classList.toggle(
+          'hidden',
+          currentCart.items.length === 0
+        );
+      }
+
+      // Function to add a game to the shopping cart
+      async function addToCart(gameId) {
+        if (!jwtToken) {
+          alert('Please login to add items to cart.');
+          return;
+        }
+        const quantityInput = prompt('Enter quantity:', '1');
+        if (quantityInput === null) return; // User cancelled prompt
+        const quantity = parseInt(quantityInput);
+        if (isNaN(quantity) || quantity < 1) {
+          alert('Invalid quantity.');
+          return;
+        }
+
+        const result = await makeApiRequest('/cart', 'POST', {
+          gameId,
+          quantity,
+        });
+        if (result.ok) {
+          fetchCart();
+        }
+      }
+
+      // Function to remove a game from the shopping cart
+      async function removeFromCart(gameId) {
+        if (!jwtToken) return;
+        if (confirm('Remove this item from your cart?')) {
+          const result = await makeApiRequest(`/cart/${gameId}`, 'DELETE');
+          if (result.ok) {
+            fetchCart();
+          }
+        }
+      }
+
+      // Function to place an order
+      async function placeOrder() {
+        if (!jwtToken || !currentCart || currentCart.items.length === 0) {
+          alert('Cart is empty or you are not logged in.');
+          return;
+        }
+        if (confirm('Are you sure you want to place this order?')) {
+          const result = await makeApiRequest('/orders', 'POST');
+          if (result.ok) {
+            alert('Order placed successfully!');
+            fetchCart();
+            fetchOrders();
+          } else {
+            alert(
+              `Failed to place order: ${result.data.error || (result.data.data && result.data.data.error) || 'Unknown error'}`
+            );
+          }
+        }
+      }
+
+      // Function to fetch the list of orders
+      async function fetchOrders() {
+        if (!jwtToken) return;
+        el.genericResponseSection.classList.remove('hidden');
+        el.genericResponse.textContent = 'Fetching orders...';
+        const result = await makeApiRequest('/orders', 'GET');
+        if (result.ok && result.data.data && Array.isArray(result.data.data)) {
+          currentOrders = result.data.data;
+        } else {
+          currentOrders = [];
+        }
+        renderOrdersTable();
+      }
+
+      // Function to render the orders table
+      function renderOrdersTable() {
+        el.ordersTableBody.innerHTML = '';
+        if (currentOrders.length === 0) {
+          el.ordersTableBody.innerHTML =
+            '<tr><td colspan="5">You have no orders.</td></tr>';
+          return;
+        }
+        currentOrders.forEach((order) => {
+          const row = el.ordersTableBody.insertRow();
+          const itemsSummary = order.items
+            .map((item) => `${item.quantity}x ${item.title || 'Game'}`)
+            .join(',<br>');
+          const orderDate = order.createdAt
+            ? new Date(order.createdAt).toLocaleDateString()
+            : 'N/A';
+          row.innerHTML = `
+                    <td>${order._id}</td>
+                    <td>${orderDate}</td>
+                    <td>${itemsSummary}</td>
+                    <td>$${(order.totalAmount || 0).toFixed(2)}</td>
+                    <td>${order.status || 'N/A'}</td>`;
+        });
+      }
+
+      // Initialize the application on page load
+      window.onload = () => {
+        updateAuthUI(!!jwtToken);
+        if (jwtToken) {
+          fetchGames();
+          fetchCart();
+          fetchOrders();
+        }
+        el.authResponse.style.display = 'block';
+      };
+
+      // Close the game modal when clicking outside of it
+      window.onclick = function (event) {
+        if (event.target == el.gameModal) closeGameModal();
+      };
+    </script>
+  </body>
+</html>
