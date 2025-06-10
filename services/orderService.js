@@ -1,6 +1,9 @@
-import Order, { find, findOne } from '../models/orderModel';
-import { findOne as _findOne } from '../models/Cart';
-import Product from '../models/Product';
+import mongoose from 'mongoose';
+import Order from '../models/Order.js';
+import Cart from '../models/Cart.js';
+import Product from '../models/Product.js';
+import ApiError from '../utils/ApiError.js';
+import ApiResponse from '../utils/ApiResponse.js';
 
 class OrderService {
   async placeOrder(userId) {
@@ -8,12 +11,13 @@ class OrderService {
     session.startTransaction();
 
     try {
-      // 1. Get user's cart
-      const cart = await _findOne({ user: userId })
+      // 1. Get the user's cart
+      const cart = await Cart.findOne({ user: userId })
         .populate('items.product')
         .session(session);
+
       if (!cart || cart.items.length === 0) {
-        throw new Error('Cart is empty');
+        throw new ApiError(400, 'Cart is empty');
       }
 
       // 2. Prepare order items and calculate total
@@ -25,7 +29,10 @@ class OrderService {
 
         // Check stock availability
         if (product.stock < item.quantity) {
-          throw new Error(`Insufficient stock for product ${product.name}`);
+          throw new ApiError(
+            400,
+            `Insufficient stock for product ${product.name}`
+          );
         }
 
         // Update product stock
@@ -42,7 +49,7 @@ class OrderService {
         totalCost += product.price * item.quantity;
       }
 
-      // 3. Create order
+      // 3. Create the order
       const order = new Order({
         user: userId,
         items: orderItems,
@@ -51,32 +58,68 @@ class OrderService {
       });
       await order.save({ session });
 
-      // 4. Clear cart
+      // 4. Empty the cart
       cart.items = [];
       await cart.save({ session });
 
       await session.commitTransaction();
       session.endSession();
 
-      return order;
+      return new ApiResponse(201, order, 'Order placed successfully');
     } catch (error) {
       await session.abortTransaction();
       session.endSession();
-      throw error;
+
+      if (error instanceof ApiError) {
+        throw error;
+      }
+
+      // Handle database errors
+      if (error.name === 'CastError') {
+        throw new ApiError(400, 'Invalid product ID');
+      }
+
+      throw new ApiError(500, 'Failed to place order', false, error.stack);
     }
   }
 
   async getOrderHistory(userId) {
-    return find({ user: userId })
-      .populate('items.product')
-      .sort({ createdAt: -1 });
+    try {
+      const orders = await Order.find({ user: userId })
+        .populate('items.product')
+        .sort({ createdAt: -1 });
+
+      return new ApiResponse(200, orders, 'Orders retrieved successfully');
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError) {
+        throw new ApiError(400, 'Invalid user ID');
+      }
+      throw new ApiError(500, 'Failed to retrieve orders', false, error.stack);
+    }
   }
 
   async getOrderDetails(userId, orderId) {
-    return findOne({
-      _id: orderId,
-      user: userId,
-    }).populate('items.product');
+    try {
+      const order = await Order.findOne({
+        _id: orderId,
+        user: userId,
+      }).populate('items.product');
+
+      if (!order) {
+        throw new ApiError(404, 'Order not found');
+      }
+
+      return new ApiResponse(
+        200,
+        order,
+        'Order details retrieved successfully'
+      );
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError) {
+        throw new ApiError(400, 'Invalid order ID');
+      }
+      throw error;
+    }
   }
 }
 
