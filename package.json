@@ -10,7 +10,10 @@
     "lint": "npm run lint:js && npm run lint:css",
     "format": "prettier --write .",
     "dev": "node server.js",
-    "start:expose": "node ./scripts/run-expose.js",
+    "start:expose": "",
+    "test": "vitest ",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
     "start": "vite",
     "build": "vite build",
     "preview": "vite preview",
@@ -30,6 +33,7 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "@vitest/ui": "^3.1.4",
     "eslint": "^9.27.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-jsdoc": "^50.6.17",
@@ -39,7 +43,9 @@
     "prettier": "^3.5.3",
     "stylelint": "^16.19.1",
     "stylelint-config-standard": "^38.0.0",
-    "tunnelmole": "^2.3.8"
+    "supertest": "^7.1.1",
+    "tunnelmole": "^2.3.8",
+    "vitest": "^3.1.4"
   },
   "lint-staged": {
     "*.js": "eslint --fix",

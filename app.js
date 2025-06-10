@@ -33,10 +33,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api', mainRouter);
 
-// TODO:this result in regex error and there is not time to debug will beee handeled later
-// app.all('*', (req, res, next) => {
-//   next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
-// });
+app.all(/(.*)/, (req, res, next) => {
+  next(new ApiError(404, `Can't find ${req.originalUrl} on this server!`));
+});
 
 app.use(errorHandler);
 
