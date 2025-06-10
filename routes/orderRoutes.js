@@ -1,17 +1,13 @@
-// routes/orderRoutes.js
-import { Router } from 'express';
-const router = Router();
-import {
-  placeOrder,
-  getOrderHistory,
-  getOrderDetails,
-} from '../controllers/orderController';
-import { authenticateUser } from '../middleware/auth';
+import express from 'express';
+import { authenticateUser } from '../middleware/authMiddleware.js';
+import OrderController from '../controllers/orderController.js';
+
+const router = express.Router();
 
 router.use(authenticateUser);
 
-router.post('/', placeOrder);
-router.get('/', getOrderHistory);
-router.get('/:id', getOrderDetails);
+router.post('/', OrderController.placeOrder);
+router.get('/', OrderController.getOrderHistory);
+router.get('/:id', OrderController.getOrderDetails);
 
 export default router;
