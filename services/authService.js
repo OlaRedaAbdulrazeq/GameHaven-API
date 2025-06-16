@@ -4,7 +4,6 @@ import ApiError from '../utils/ApiError.js';
 import process from 'node:process';
 
 const generateToken = (id) => {
-  console.log('JWT_SECRET in generateToken:', process.env.JWT_SECRET); // DIAGNOSTIC LOG
   if (!process.env.JWT_SECRET) {
     throw new Error('CRITICAL: JWT_SECRET is undefined in generateToken!');
   }
@@ -20,7 +19,7 @@ export const registerUser = async (userData) => {
   }
   const user = await User.create({ name, email, password, role });
 
-  // Exclude password from the returned user object
+  // Exclude password from the returned user object TODO: handle this on db level making sure that select:false is working
   const userResponse = user.toObject();
   delete userResponse.password;
 
@@ -33,7 +32,7 @@ export const loginUser = async (email, password) => {
     throw new ApiError(401, 'Invalid email or password');
   }
 
-  // Exclude password from the returned user object
+  // Exclude password from the returned user object TODO: handle this on db level making sure that select:false is working
   const userResponse = user.toObject();
   delete userResponse.password;
 
