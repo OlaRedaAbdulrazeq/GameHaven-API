@@ -26,13 +26,11 @@ export const getAllGames = async (
 
   return { games, total, page: +page, pages: Math.ceil(total / limit) };
 };
-
 export const getGameById = async (id) => {
   const game = await Game.findById(id);
   if (!game) throw new ApiError(404, 'Game not found');
   return game;
 };
-
 export const addNewGame = async (gameData) => {
   try {
     const game = new Game(gameData);
@@ -41,7 +39,6 @@ export const addNewGame = async (gameData) => {
     throw new ApiError(400, 'Invalid game data', true, err.stack);
   }
 };
-
 export const updateGameById = async (id, updateData) => {
   const game = await Game.findByIdAndUpdate(id, updateData, {
     new: true,
@@ -51,7 +48,6 @@ export const updateGameById = async (id, updateData) => {
   if (!game) throw new ApiError(404, 'Game not found');
   return game;
 };
-
 export const deleteGameById = async (id) => {
   const game = await Game.findByIdAndDelete(id);
   if (!game) throw new ApiError(404, 'Game not found');
