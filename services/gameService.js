@@ -10,6 +10,7 @@ export const getAllGames = async (
   if (genre) filters.genre = genre;
   if (platform) filters.platform = platform;
   if (keyword) filters.title = { $regex: keyword, $options: 'i' };
+
   // Filter out unavailable games unless admin
   if (!user || user.role !== 'admin') {
     filters.stock = { $gt: 0 };
