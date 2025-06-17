@@ -1,10 +1,10 @@
 import express from 'express';
-import { authenticateUser } from '../middleware/authMiddleware.js';
+import { protect } from '../middleware/authMiddleware.js';
 import OrderController from '../controllers/orderController.js';
 
 const router = express.Router();
 
-router.use(authenticateUser);
+router.use(protect);
 
 router.post('/', OrderController.placeOrder);
 router.get('/', OrderController.getOrderHistory);
