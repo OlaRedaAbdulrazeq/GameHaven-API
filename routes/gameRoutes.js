@@ -19,6 +19,10 @@ import {
   validateGameFields,
 } from '../validators/gameValidators.js';
 import upload from '../middleware/uploadMiddleware.js';
+import {
+  createReview,
+  getReviewsForGame,
+} from '../controllers/reviewController.js';
 
 const router = express.Router();
 
