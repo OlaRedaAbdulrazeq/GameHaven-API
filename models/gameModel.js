@@ -5,12 +5,14 @@ const gameSchema = new mongoose.Schema(
     title: { type: String, required: true, unique: true },
     description: { type: String, required: true },
     platform: [{ type: String, required: true }],
-
     genre: [{ type: String, required: true }],
+    categories: [{ type: String }],
     price: { type: Number, required: true, min: 0 },
     cover: { type: String, required: true }, // single main image (required)
     gallery: [{ type: String }],
     stock: { type: Number, default: 1, required: true },
+    ratings: { type: Number, default: 0 },
+    reviewCount: { type: Number, default: 0 },
   },
   { timestamps: true, strict: true }
 );
