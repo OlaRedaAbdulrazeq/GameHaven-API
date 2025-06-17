@@ -315,7 +315,6 @@
       </div>
     </div>
 
-    <!-- Game Modal -->
     <div id="gameModal" class="modal">
       <div class="modal-content">
         <span class="close-button" onclick="closeGameModal()">×</span>
@@ -333,10 +332,8 @@
         <input type="number" id="modalGamePrice" step="0.01" />
         <label for="modalGameStock">Stock:</label>
         <input type="number" id="modalGameStock" />
-        <p style="font-size: 0.9em; color: #777">
-          (Cover image upload via this UI is simplified. Add file input if
-          needed.)
-        </p>
+        <label for="modalGameCover">Cover Image:</label>
+        <input type="file" id="modalGameCover" accept="image/*" />
         <button onclick="saveGame()">Save Game</button>
         <pre id="modalResponse"></pre>
       </div>
@@ -379,6 +376,7 @@
         modalGameGenre: document.getElementById('modalGameGenre'),
         modalGamePrice: document.getElementById('modalGamePrice'),
         modalGameStock: document.getElementById('modalGameStock'),
+        modalGameCover: document.getElementById('modalGameCover'), // Add this line
         genericResponse: document.getElementById('genericResponse'),
         genericResponseSection: document.getElementById(
           'genericResponseSection'
@@ -396,6 +394,7 @@
         if (jwtToken) {
           headers['Authorization'] = `Bearer ${jwtToken}`;
         }
+        // Remove Content-Type for FormData as the browser sets it automatically
         if (!isFormData && body && (method === 'POST' || method === 'PUT')) {
           headers['Content-Type'] = 'application/json';
         }
@@ -575,15 +574,14 @@
           const row = el.gamesTableBody.insertRow();
           let coverSrc =
             game.coverImage || 'https://via.placeholder.com/50x75?text=No+Img';
+          // Fix for local paths: Ensure it starts with / and handle if it's already a full URL
           if (coverSrc && !coverSrc.startsWith('http')) {
-            // If it's a local path
-            coverSrc = coverSrc.startsWith('/') ? coverSrc : `/${coverSrc}`; // Ensure it starts with /
+            coverSrc = coverSrc.startsWith('/') ? coverSrc : `/${coverSrc}`;
           }
 
           row.innerHTML = `
                     <td>
-                      <!-- <img src="${coverSrc}" alt="${game.title || ''}" > -->
-
+                      <img src="${coverSrc}" alt="${game.title || ''}" onerror="this.onerror=null;this.src='https://via.placeholder.com/50x75?text=No+Img';">
                     </td>
                     <td>${game.title || 'N/A'}</td> <td>${game.platform || 'N/A'}</td> <td>${game.genre || 'N/A'}</td>
                     <td>$${(game.price || 0).toFixed(2)}</td> <td>${game.stock !== undefined ? game.stock : 'N/A'}</td>
@@ -609,6 +607,7 @@
             el.modalGameGenre.value = game.genre;
             el.modalGamePrice.value = game.price;
             el.modalGameStock.value = game.stock;
+            // No need to set file input value for existing image as it's a file input
           } else {
             alert('Game not found for editing.');
             return;
@@ -634,6 +633,7 @@
         el.modalGameGenre.value = '';
         el.modalGamePrice.value = '';
         el.modalGameStock.value = '';
+        el.modalGameCover.value = ''; // Clear file input
         el.modalResponse.textContent = '';
       }
 
@@ -647,15 +647,18 @@
         const method = gameId ? 'PUT' : 'POST';
         const endpoint = gameId ? `/games/${gameId}` : '/games';
 
-        const formData = new FormData(); // Use FormData for game creation/update due to potential file upload
+        const formData = new FormData();
         formData.append('title', el.modalGameTitle.value);
         formData.append('description', el.modalGameDescription.value);
         formData.append('platform', el.modalGamePlatform.value);
         formData.append('genre', el.modalGameGenre.value);
         formData.append('price', el.modalGamePrice.value);
         formData.append('stock', el.modalGameStock.value);
-        // Example for file: const fileInput = document.getElementById('modalGameCover');
-        // if (fileInput && fileInput.files[0]) formData.append('coverImage', fileInput.files[0]);
+
+        // Append the file if one is selected
+        if (el.modalGameCover.files[0]) {
+          formData.append('cover', el.modalGameCover.files[0]);
+        }
 
         const result = await makeApiRequest(endpoint, method, formData, true); // isFormData = true
         if (result.ok) {
@@ -715,7 +718,7 @@
 
           row.innerHTML = `
                     <td>
-                      <!-- <img src="${coverSrc}" alt="${item.title || ''}" onerror="this.style.display='none'; this.parentElement.innerHTML+='(no img)';"> -->
+                      <img src="${coverSrc}" alt="${item.title || ''}" onerror="this.onerror=null;this.src='https://via.placeholder.com/50x75?text=No+Img';">
                     </td>
                     <td>${item.title || 'N/A'}</td>
                     <td>$${(item.price || 0).toFixed(2)}</td>
