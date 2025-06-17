@@ -315,7 +315,6 @@
       </div>
     </div>
 
-    <!-- Game Modal -->
     <div id="gameModal" class="modal">
       <div class="modal-content">
         <span class="close-button" onclick="closeGameModal()">×</span>
@@ -333,10 +332,8 @@
         <input type="number" id="modalGamePrice" step="0.01" />
         <label for="modalGameStock">Stock:</label>
         <input type="number" id="modalGameStock" />
-        <p style="font-size: 0.9em; color: #777">
-          (Cover image upload via this UI is simplified. Add file input if
-          needed.)
-        </p>
+        <label for="modalGameCover">Cover Image:</label>
+        <input type="file" id="modalGameCover" accept="image/*" />
         <button onclick="saveGame()">Save Game</button>
         <pre id="modalResponse"></pre>
       </div>
@@ -379,6 +376,7 @@
         modalGameGenre: document.getElementById('modalGameGenre'),
         modalGamePrice: document.getElementById('modalGamePrice'),
         modalGameStock: document.getElementById('modalGameStock'),
+        modalGameCover: document.getElementById('modalGameCover'),
         genericResponse: document.getElementById('genericResponse'),
         genericResponseSection: document.getElementById(
           'genericResponseSection'
@@ -396,6 +394,7 @@
         if (jwtToken) {
           headers['Authorization'] = `Bearer ${jwtToken}`;
         }
+        // Remove Content-Type for FormData as the browser sets it automatically
         if (!isFormData && body && (method === 'POST' || method === 'PUT')) {
           headers['Content-Type'] = 'application/json';
         }
@@ -551,8 +550,13 @@
         el.genericResponseSection.classList.remove('hidden');
         el.genericResponse.textContent = 'Fetching games...';
         const result = await makeApiRequest('/games', 'GET');
-        if (result.ok && result.data.data && Array.isArray(result.data.data)) {
-          currentGames = result.data.data;
+        if (
+          result.ok &&
+          result.data.data &&
+          Array.isArray(result.data.data.games)
+        ) {
+          // Access games array
+          currentGames = result.data.data.games; // Assign the games array
         } else {
           console.warn(
             'Failed to fetch games or data format incorrect:',
@@ -574,18 +578,17 @@
         currentGames.forEach((game) => {
           const row = el.gamesTableBody.insertRow();
           let coverSrc =
-            game.coverImage || 'https://via.placeholder.com/50x75?text=No+Img';
+            game.cover || 'https://via.placeholder.com/50x75?text=No+Img';
+          // Fix for local paths: Ensure it starts with / and handle if it's already a full URL
           if (coverSrc && !coverSrc.startsWith('http')) {
-            // If it's a local path
-            coverSrc = coverSrc.startsWith('/') ? coverSrc : `/${coverSrc}`; // Ensure it starts with /
+            coverSrc = coverSrc.startsWith('/') ? coverSrc : `/${coverSrc}`;
           }
 
           row.innerHTML = `
                     <td>
-                      <!-- <img src="${coverSrc}" alt="${game.title || ''}" > -->
-
+                      <img src="${coverSrc}" alt="${game.title || ''}" onerror="this.onerror=null;this.src='https://via.placeholder.com/50x75?text=No+Img';">
                     </td>
-                    <td>${game.title || 'N/A'}</td> <td>${game.platform || 'N/A'}</td> <td>${game.genre || 'N/A'}</td>
+                    <td>${game.title || 'N/A'}</td> <td>${game.platform.join(', ') || 'N/A'}</td> <td>${game.genre.join(', ') || 'N/A'}</td>
                     <td>$${(game.price || 0).toFixed(2)}</td> <td>${game.stock !== undefined ? game.stock : 'N/A'}</td>
                     <td>
                         <button onclick="openGameModal('${game._id}')" class="secondary">Edit</button>
@@ -604,11 +607,12 @@
             el.modalTitle.textContent = 'Edit Game';
             el.gameIdInput.value = game._id;
             el.modalGameTitle.value = game.title;
-            el.modalGameDescription.value = game.description;
+            el.modalGameDescription.value = game.description || ''; // Ensure description is set
             el.modalGamePlatform.value = game.platform;
             el.modalGameGenre.value = game.genre;
             el.modalGamePrice.value = game.price;
             el.modalGameStock.value = game.stock;
+            // No need to set file input value for existing image as it's a file input
           } else {
             alert('Game not found for editing.');
             return;
@@ -634,6 +638,7 @@
         el.modalGameGenre.value = '';
         el.modalGamePrice.value = '';
         el.modalGameStock.value = '';
+        el.modalGameCover.value = ''; // Clear file input
         el.modalResponse.textContent = '';
       }
 
@@ -647,15 +652,35 @@
         const method = gameId ? 'PUT' : 'POST';
         const endpoint = gameId ? `/games/${gameId}` : '/games';
 
-        const formData = new FormData(); // Use FormData for game creation/update due to potential file upload
+        const formData = new FormData();
         formData.append('title', el.modalGameTitle.value);
         formData.append('description', el.modalGameDescription.value);
-        formData.append('platform', el.modalGamePlatform.value);
-        formData.append('genre', el.modalGameGenre.value);
+
+        // Corrected logic for platform and genre:
+        // Split by comma, trim, filter, and append each as a separate item
+        const platforms = el.modalGamePlatform.value
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s);
+        platforms.forEach((platform) => {
+          formData.append('platform[]', platform); // Use 'platform[]' to indicate an array
+        });
+
+        const genres = el.modalGameGenre.value
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s);
+        genres.forEach((genre) => {
+          formData.append('genre[]', genre); // Use 'genre[]' to indicate an array
+        });
+
         formData.append('price', el.modalGamePrice.value);
         formData.append('stock', el.modalGameStock.value);
-        // Example for file: const fileInput = document.getElementById('modalGameCover');
-        // if (fileInput && fileInput.files[0]) formData.append('coverImage', fileInput.files[0]);
+
+        // Append the file if one is selected
+        if (el.modalGameCover.files[0]) {
+          formData.append('cover', el.modalGameCover.files[0]);
+        }
 
         const result = await makeApiRequest(endpoint, method, formData, true); // isFormData = true
         if (result.ok) {
@@ -709,13 +734,13 @@
         currentCart.items.forEach((item) => {
           const row = el.cartTableBody.insertRow();
           let coverSrc =
-            item.coverImage || 'https://via.placeholder.com/50x75?text=No+Img';
+            item.cover || 'https://via.placeholder.com/50x75?text=No+Img';
           if (coverSrc && !coverSrc.startsWith('http'))
             coverSrc = coverSrc.startsWith('/') ? coverSrc : `/${coverSrc}`;
 
           row.innerHTML = `
                     <td>
-                      <!-- <img src="${coverSrc}" alt="${item.title || ''}" onerror="this.style.display='none'; this.parentElement.innerHTML+='(no img)';"> -->
+                      <img src="${coverSrc}" alt="${item.title || ''}" onerror="this.onerror=null;this.src='https://via.placeholder.com/50x75?text=No+Img';">
                     </td>
                     <td>${item.title || 'N/A'}</td>
                     <td>$${(item.price || 0).toFixed(2)}</td>
