@@ -20,6 +20,11 @@ import {
 } from '../validators/gameValidators.js';
 import upload from '../middleware/uploadMiddleware.js';
 
+import {
+  createReview,
+  getReviewsForGame,
+} from '../controllers/reviewController.js';
+
 const router = express.Router();
 
 // Public
@@ -54,5 +59,8 @@ router.put(
   updateGame
 );
 router.delete('/:id', protect, isAdmin, deleteGame);
+
+router.get('/:gameId/reviews', getReviewsForGame);
+router.post('/:gameId/reviews', protect, createReview);
 
 export default router;
