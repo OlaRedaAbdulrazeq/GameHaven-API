@@ -20,7 +20,7 @@ export const getAllGames = async (
 
   // Only select specific fields here
   const games = await Game.find(filters)
-    .select('title platform genre price cover stock')
+    .select('title platform genre price cover stock description')
     .skip(skip)
     .limit(Number(limit));
 

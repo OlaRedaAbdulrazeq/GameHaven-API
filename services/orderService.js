@@ -60,6 +60,7 @@ class OrderService {
 
       // 4. Empty the cart
       cart.items = [];
+      cart.totalPrice = 0;
       await cart.save({ session });
 
       await session.commitTransaction();
