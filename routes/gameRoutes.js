@@ -55,4 +55,6 @@ router.put(
 );
 router.delete('/:id', protect, isAdmin, deleteGame);
 
+router.get('/:gameId/reviews', getReviewsForGame);
+router.post('/:gameId/reviews', protect, createReview);
 export default router;
