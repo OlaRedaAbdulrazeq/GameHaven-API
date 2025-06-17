@@ -1,11 +1,12 @@
 import { Schema, model } from 'mongoose';
 
 const orderItemSchema = new Schema({
-  product: {
+  game: {
     type: Schema.Types.ObjectId,
-    ref: 'Product',
+    ref: 'Game',
     required: true,
   },
+
   quantity: {
     type: Number,
     required: true,
