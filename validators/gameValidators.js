@@ -39,6 +39,12 @@ export const gameCreateValidationRules = [
     .custom((arr) => arr.length > 0 && arr.every((g) => typeof g === 'string'))
     .withMessage('Genre must be a non-empty array of strings'),
 
+  body('categories')
+    .optional()
+    .customSanitizer((value) => (Array.isArray(value) ? value : [value]))
+    .custom((arr) => arr.length > 0 && arr.every((g) => typeof g === 'string'))
+    .withMessage('Each category must be a string'),
+
   body('price')
     .notEmpty()
     .withMessage('Price is required')
@@ -105,6 +111,7 @@ const allowedGameFields = [
   'gallery',
   'stock',
   'ratings',
+  'categories',
 ];
 
 export const validateGameFields = (req, res, next) => {
