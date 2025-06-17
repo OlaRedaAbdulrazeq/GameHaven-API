@@ -45,8 +45,8 @@ router.put(
     { name: 'cover', maxCount: 1 },
     { name: 'gallery', maxCount: 5 },
   ]),
-  validateGameFields,
   gameUpdateValidationRules,
+  validateGameFields,
   updateGame
 );
 router.delete('/:id', verifyToken, isAdmin, deleteGame);
