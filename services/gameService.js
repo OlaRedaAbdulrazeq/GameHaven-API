@@ -2,13 +2,14 @@ import Game from '../models/gameModel.js';
 import ApiError from '../utils/ApiError.js';
 
 export const getAllGames = async (
-  { page = 1, limit = 10, genre, platform, keyword },
+  { page = 1, limit = 10, genre, platform, category, keyword },
   user
 ) => {
   const filters = {};
 
   if (genre) filters.genre = genre;
   if (platform) filters.platform = platform;
+  if (category) filters.categories = category;
   if (keyword) filters.title = { $regex: keyword, $options: 'i' };
 
   // Filter out unavailable games unless admin
