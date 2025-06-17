@@ -11,9 +11,10 @@ const gameSchema = new mongoose.Schema(
     cover: { type: String, required: true }, // single main image (required)
     gallery: [{ type: String }],
     stock: { type: Number, default: 0 },
-    ratings: { type: Number, default: 0 },
   },
   { timestamps: true, strict: true }
 );
+gameSchema.index({ genre: 1 });
+gameSchema.index({ platform: 1 });
 const Game = mongoose.model('Game', gameSchema);
 export default Game;
