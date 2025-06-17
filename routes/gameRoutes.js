@@ -28,6 +28,7 @@ router.get('/:id', verifyTokenOptional, getGameByIdController);
 // Admin
 router.post(
   '/',
+  verifyToken,
   isAdmin,
   upload.fields([
     { name: 'cover', maxCount: 1 },
