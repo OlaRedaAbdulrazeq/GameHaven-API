@@ -42,7 +42,6 @@ export const gameCreateValidationRules = [
     .withMessage('Ratings must be a non-negative number'),
 ];
 
-// Validation for updating a game
 export const gameUpdateValidationRules = [
   body('title').optional().isString().withMessage('Title must be a string'),
 
@@ -53,15 +52,18 @@ export const gameUpdateValidationRules = [
 
   body('platform')
     .optional()
-    .isArray()
-    .withMessage('Platform must be an array of strings')
+    .customSanitizer((value) => {
+      // Force to array for uniform validation
+      return Array.isArray(value) ? value : [value];
+    })
     .custom((arr) => arr.every((p) => typeof p === 'string'))
     .withMessage('Each platform must be a string'),
 
   body('genre')
     .optional()
-    .isArray()
-    .withMessage('Genre must be an array of strings')
+    .customSanitizer((value) => {
+      return Array.isArray(value) ? value : [value];
+    })
     .custom((arr) => arr.every((g) => typeof g === 'string'))
     .withMessage('Each genre must be a string'),
 
@@ -92,7 +94,6 @@ const allowedGameFields = [
   'stock',
   'ratings',
 ];
-
 export const validateGameFields = (req, res, next) => {
   const receivedFields = Object.keys(req.body);
 
