@@ -10,7 +10,7 @@ const gameSchema = new mongoose.Schema(
     price: { type: Number, required: true, min: 0 },
     cover: { type: String, required: true }, // single main image (required)
     gallery: [{ type: String }],
-    stock: { type: Number, default: 0 },
+    stock: { type: Number, default: 1, required: true },
   },
   { timestamps: true, strict: true }
 );
