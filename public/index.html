@@ -608,14 +608,8 @@
             el.gameIdInput.value = game._id;
             el.modalGameTitle.value = game.title;
             el.modalGameDescription.value = game.description || ''; // Ensure description is set
-            el.modalGamePlatform.value =
-              (Array.isArray(game.platform)
-                ? game.platform.join(', ')
-                : game.platform) || '';
-            el.modalGameGenre.value =
-              (Array.isArray(game.genre)
-                ? game.genre.join(', ')
-                : game.genre) || '';
+            el.modalGamePlatform.value = game.platform;
+            el.modalGameGenre.value = game.genre;
             el.modalGamePrice.value = game.price;
             el.modalGameStock.value = game.stock;
             // No need to set file input value for existing image as it's a file input
@@ -661,8 +655,25 @@
         const formData = new FormData();
         formData.append('title', el.modalGameTitle.value);
         formData.append('description', el.modalGameDescription.value);
-        formData.append('platform', el.modalGamePlatform.value); // These will be sent as comma-separated strings
-        formData.append('genre', el.modalGameGenre.value); // These will be sent as comma-separated strings
+
+        // Corrected logic for platform and genre:
+        // Split by comma, trim, filter, and append each as a separate item
+        const platforms = el.modalGamePlatform.value
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s);
+        platforms.forEach((platform) => {
+          formData.append('platform[]', platform); // Use 'platform[]' to indicate an array
+        });
+
+        const genres = el.modalGameGenre.value
+          .split(',')
+          .map((s) => s.trim())
+          .filter((s) => s);
+        genres.forEach((genre) => {
+          formData.append('genre[]', genre); // Use 'genre[]' to indicate an array
+        });
+
         formData.append('price', el.modalGamePrice.value);
         formData.append('stock', el.modalGameStock.value);
 
