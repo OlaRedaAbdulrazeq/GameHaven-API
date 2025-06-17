@@ -50,6 +50,6 @@ router.put(
   validateGameFields,
   updateGame
 );
-router.delete('/:id', verifyToken, isAdmin, deleteGame);
+router.delete('/:id', protect, isAdmin, deleteGame);
 
 export default router;
