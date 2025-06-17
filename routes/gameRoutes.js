@@ -15,6 +15,7 @@ import {
 import {
   gameCreateValidationRules,
   gameUpdateValidationRules,
+  validate,
   validateGameFields,
 } from '../validators/gameValidators.js';
 import upload from '../middleware/uploadMiddleware.js';
@@ -36,6 +37,7 @@ router.post(
   ]),
   validateGameFields,
   gameCreateValidationRules,
+  validate,
   addGame
 );
 router.put(
@@ -48,6 +50,7 @@ router.put(
   ]),
   gameUpdateValidationRules,
   validateGameFields,
+  validate,
   updateGame
 );
 router.delete('/:id', protect, isAdmin, deleteGame);
