@@ -47,7 +47,7 @@ export const addItemToCart = async (userId, gameId, quantity) => {
       quantity,
       price: game.price,
       title: game.title,
-      coverImage: game.cover, // ola named it cover
+      cover: game.cover, // ola named it cover
     });
   }
   cart.calculateTotalPrice();
