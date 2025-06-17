@@ -8,7 +8,7 @@ import {
 } from '../controllers/gameController.js';
 
 import {
-  verifyToken,
+  protect,
   isAdmin,
   verifyTokenOptional,
 } from '../middleware/authMiddleware.js';
@@ -28,7 +28,7 @@ router.get('/:id', verifyTokenOptional, getGameByIdController);
 // Admin
 router.post(
   '/',
-  verifyToken,
+  protect,
   isAdmin,
   upload.fields([
     { name: 'cover', maxCount: 1 },
@@ -40,7 +40,7 @@ router.post(
 );
 router.put(
   '/:id',
-  verifyToken,
+  protect,
   isAdmin,
   upload.fields([
     { name: 'cover', maxCount: 1 },
