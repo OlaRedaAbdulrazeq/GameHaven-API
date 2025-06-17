@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
-import Order from '../models/Order.js';
-import Cart from '../models/Cart.js';
-import Product from '../models/Product.js';
+import Order from '../models/orderModel.js';
+import Cart from '../models/cartModel.js';
+// import Product from '../models/Product.js';
 import ApiError from '../utils/ApiError.js';
 import ApiResponse from '../utils/ApiResponse.js';
 
@@ -13,7 +13,7 @@ class OrderService {
     try {
       // 1. Get the user's cart
       const cart = await Cart.findOne({ user: userId })
-        .populate('items.product')
+        .populate('items.game')
         .session(session);
 
       if (!cart || cart.items.length === 0) {
@@ -25,13 +25,13 @@ class OrderService {
       const orderItems = [];
 
       for (const item of cart.items) {
-        const product = item.product;
+        const product = item.game;
 
         // Check stock availability
         if (product.stock < item.quantity) {
           throw new ApiError(
             400,
-            `Insufficient stock for product ${product.name}`
+            `Insufficient stock for product ${product.title}`
           );
         }
 
@@ -41,7 +41,7 @@ class OrderService {
 
         // Prepare order item
         orderItems.push({
-          product: product._id,
+          game: product._id,
           quantity: item.quantity,
           priceAtPurchase: product.price,
         });
@@ -76,7 +76,7 @@ class OrderService {
 
       // Handle database errors
       if (error.name === 'CastError') {
-        throw new ApiError(400, 'Invalid product ID');
+        throw new ApiError(400, 'Invalid game ID');
       }
 
       throw new ApiError(500, 'Failed to place order', false, error.stack);
@@ -86,7 +86,7 @@ class OrderService {
   async getOrderHistory(userId) {
     try {
       const orders = await Order.find({ user: userId })
-        .populate('items.product')
+        .populate('items.game')
         .sort({ createdAt: -1 });
 
       return new ApiResponse(200, orders, 'Orders retrieved successfully');
@@ -103,7 +103,7 @@ class OrderService {
       const order = await Order.findOne({
         _id: orderId,
         user: userId,
-      }).populate('items.product');
+      }).populate('items.game');
 
       if (!order) {
         throw new ApiError(404, 'Order not found');
