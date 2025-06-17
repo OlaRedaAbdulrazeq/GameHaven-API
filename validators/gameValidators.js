@@ -1,5 +1,21 @@
 import { body } from 'express-validator';
 import ApiError from '../utils/ApiError.js';
+import { validationResult } from 'express-validator';
+
+export const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({
+      success: false,
+      errors: errors.array().map((err) => ({
+        field: err.param,
+        message: err.msg,
+      })),
+    });
+  }
+  next();
+};
+
 // Validation for creating a new game
 export const gameCreateValidationRules = [
   body('title')
@@ -14,16 +30,14 @@ export const gameCreateValidationRules = [
     .withMessage('Description must be a string'),
 
   body('platform')
-    .isArray({ min: 1 })
-    .withMessage('Platform must be a non-empty array of strings')
-    .custom((arr) => arr.every((p) => typeof p === 'string'))
-    .withMessage('Each platform must be a string'),
+    .customSanitizer((value) => (Array.isArray(value) ? value : [value]))
+    .custom((arr) => arr.length > 0 && arr.every((p) => typeof p === 'string'))
+    .withMessage('Platform must be a non-empty array of strings'),
 
   body('genre')
-    .isArray({ min: 1 })
-    .withMessage('Genre must be a non-empty array of strings')
-    .custom((arr) => arr.every((g) => typeof g === 'string'))
-    .withMessage('Each genre must be a string'),
+    .customSanitizer((value) => (Array.isArray(value) ? value : [value]))
+    .custom((arr) => arr.length > 0 && arr.every((g) => typeof g === 'string'))
+    .withMessage('Genre must be a non-empty array of strings'),
 
   body('price')
     .notEmpty()
