@@ -1,5 +1,6 @@
 import Game from '../models/gameModel.js';
 import ApiError from '../utils/ApiError.js';
+import { uploadToImgbb } from '../utils/imgbbUpload.js';
 
 export const getAllGames = async (
   { page = 1, limit = 10, genre, platform, category, keyword },
@@ -33,15 +34,23 @@ export const getGameById = async (id) => {
   if (!game) throw new ApiError(404, 'Game not found');
   return game;
 };
-export const addNewGame = async (gameData) => {
+export const addNewGame = async (gameData, fileBuffer) => {
   try {
+    if (fileBuffer) {
+      const imageUrl = await uploadToImgbb(fileBuffer);
+      gameData.cover = imageUrl;
+    }
     const game = new Game(gameData);
     return await game.save();
   } catch (err) {
     throw new ApiError(400, 'Invalid game data', true, err.stack);
   }
 };
-export const updateGameById = async (id, updateData) => {
+export const updateGameById = async (id, updateData, fileBuffer) => {
+  if (fileBuffer) {
+    const imageUrl = await uploadToImgbb(fileBuffer);
+    updateData.cover = imageUrl;
+  }
   const game = await Game.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
