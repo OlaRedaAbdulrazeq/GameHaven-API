@@ -10,6 +10,7 @@ import {
   deleteGameById,
 } from '../services/gameService.js';
 import Game from '../models/gameModel.js';
+import { uploadToImgbb } from '../utils/imgbbUpload.js';
 
 export const getGames = asyncHandler(async (req, res) => {
   const result = await getAllGames(req.query, req.user);
@@ -26,12 +27,18 @@ export const addGame = asyncHandler(async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new ApiError(400, 'Validation failed', true));
   }
-  // Extract image paths
-  const cover = req.files?.cover?.[0]?.path;
-  const gallery = req.files?.gallery?.map((file) => file.path) || [];
-  if (!cover) {
+  const coverBuffer = req.files?.cover?.[0]?.buffer;
+  const galleryBuffers = req.files?.gallery || [];
+
+  if (!coverBuffer) {
     return next(new ApiError(400, 'Cover image is required'));
   }
+
+  const cover = await uploadToImgbb(coverBuffer);
+
+  const gallery = await Promise.all(
+    galleryBuffers.map((file) => uploadToImgbb(file.buffer))
+  );
   const gameData = {
     ...req.body,
     cover,
@@ -80,7 +87,8 @@ export const updateGame = asyncHandler(async (req, res, next) => {
 
   // Cover image replacement
   if (req.files?.cover?.[0]) {
-    updateData.cover = req.files.cover[0].path;
+    const newCover = await uploadToImgbb(req.files.cover[0].buffer);
+    updateData.cover = newCover;
   }
 
   // Start with the existing gallery
@@ -97,8 +105,13 @@ export const updateGame = asyncHandler(async (req, res, next) => {
 
   // 2. Append new gallery images (avoid duplicates)
   if (req.files?.gallery?.length) {
-    const newGallery = req.files.gallery.map((file) => file.path);
-    updatedGallery = Array.from(new Set([...updatedGallery, ...newGallery]));
+    const newGalleryImages = await Promise.all(
+      req.files.gallery.map((file) => uploadToImgbb(file.buffer))
+    );
+
+    updatedGallery = Array.from(
+      new Set([...updatedGallery, ...newGalleryImages])
+    );
   }
 
   updateData.gallery = updatedGallery;
